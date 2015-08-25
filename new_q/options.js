@@ -86,7 +86,16 @@ $(document).ready(function(){
 	restoreOptions();
 	
      $.getJSON(API_URL + "/" + API_VERSION + "/sites", {"key" : API_KEY, "filter" : SITES_FILTER, "pagesize" : 200 }, function(data){
-		 viewModel.sites = ko.observableArray(data.items);
+         viewModel.sites = ko.observableArray(data.items);
+
+         var tmp_options = {
+             attribute: "data-bind",        // default "data-sbind"
+             globals: window,               // default {}
+             bindings: ko.bindingHandlers,  // default ko.bindingHandlers
+             noVirtualElements: false       // default true
+         };
+         ko.bindingProvider.instance = new ko.secureBindingsProvider(tmp_options);
+
 		 ko.applyBindings(viewModel);
      });
     

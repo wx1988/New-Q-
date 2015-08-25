@@ -1,16 +1,22 @@
 <html>
 <head>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
-<script src="jquery.tmpl.js"></script>
-<script src="knockout-2.0.0.js" type="text/javascript"></script>
-<script src="knockout-mapping-2.0.4.js" type="text/javascript"></script>
-<link href="bootstrap/css/bootstrap.css" rel="stylesheet">
-<link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+
+    <script src="js/jquery.min.js" type="text/javascript"></script>
+    <script src="js/jquery.tmpl.js"></script>
+    <script src="js/knockout-3.3.0.js" type="text/javascript"></script>
+    <script src="js/knockout-mapping-2.4.1.js" type="text/javascript"></script>
+    <script src="js/knockout-secure-binding.js" type="text/javascript"></script>
+    <script src="popup.js" type="text/javascript"></script>
+
+    <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
 </head>
+
 <body style="width: 500px;">	
 
 <script type="text/html" id="questionTemplate">
 	{{if questions.length}}
+
 	   {{each questions}}
 	       <tr>
 	           <td>
@@ -21,6 +27,7 @@
 			</td>
 	       </tr>
 	   {{/each}}
+
 	{{else}}
 		<tr><td colspan="2"><em>No new questions found matching any of your search profiles</em></td></tr>
 	{{/if}}
@@ -39,33 +46,6 @@
 	<a class="btn btn-danger" id="stop"><i class="icon-stop icon-white"></i> Stop showing notifications</a>
 	<a class="btn btn-success" id="go"><i class="icon-play icon-white"></i> Show notifications</a>	
 </div>
-<script type="text/javascript">
-var questions = chrome.extension.getBackgroundPage().getLastBatchOfQuestions();
-var viewModel = ko.mapping.fromJS(questions);
 
-ko.applyBindings(viewModel);
-
-$("#go").click(
-    function(){
-            chrome.extension.getBackgroundPage().go();
-			$("#go").hide();
-			$("#stop").show();
-    });
-$("#stop").click(
-    function(){
-            chrome.extension.getBackgroundPage().stop();
-			$("#stop").hide();
-			$("#go").show();
-    });
-$(".link").click(function(){
-	chrome.tabs.create({"url": $(this).data("href")});
-});
-if(chrome.extension.getBackgroundPage() && chrome.extension.getBackgroundPage().getIntervals() && chrome.extension.getBackgroundPage().getIntervals().length > 0){
-	$("#go").hide();
-}
-else{
-	$("#stop").hide();
-}
-</script>
 </body>
 </html>
