@@ -1,58 +1,59 @@
-
-var APP = {};//Global variable container
+var APP = {};   //Global variable container
 
 // Convenience functions
 String.prototype.startsWith = function(str){ return (this.match("^"+str)==str);}
 
 String.prototype.hashCode = function(){
-	var hash = 0;
-	if (this.length == 0) return hash;
-	for (i = 0; i < this.length; i++) {
-		char = this.charCodeAt(i);
-		hash = ((hash<<5)-hash)+char;
-		hash = hash & hash; // Convert to 32bit integer
-	}
-	return hash;
+    var hash = 0;
+    if (this.length == 0) return hash;
+    for (i = 0; i < this.length; i++) {
+        char = this.charCodeAt(i);
+        hash = ((hash<<5)-hash)+char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    return hash;
 }
 
 // Gets the site object reprenting an SE site for a given name
 function getSite(name){
-	if(typeof name === "object"){
-		return name;
-	}
-	var toReturn;
-	$.each(APP.viewModel.sites, function(key, value){
-		if(value.name === name){
-			toReturn = value;
-			return;
-		}
-	});
-	return toReturn;
+    if(typeof name === "object"){
+        return name;
+    }
+    var toReturn;
+    $.each(APP.viewModel.sites, function(key, value){
+        if(value.name === name){
+            toReturn = value;
+            return;
+        }
+    });
+    return toReturn;
 }
 
 // Load data from the saved data on the 
 function loadData(){
-	if(localStorage.viewModel){
-		APP.viewModel = JSON.parse(localStorage.viewModel);
-	}
-	else{
-		APP.viewModel = {
-		   "token":"",
-		   "sites":[],
-		   "profiles":[],
-		   "badgeSite" : "",
-		   "autoclose" : true
-		}
-	}
+    if(localStorage.viewModel){
+        APP.viewModel = JSON.parse(localStorage.viewModel);
+    }
+    else{
+        APP.viewModel = {
+            "token":"",
+            "sites":[],
+            "profiles":[],
+            "badgeSite" : "",
+            "autoclose" : true
+        }
+    }
 }
+
 loadData();//load it now
 if(APP.viewModel.token){
-	authorizeAllAjaxCalls(APP.viewModel.token);
+    authorizeAllAjaxCalls(APP.viewModel.token);
 }
 
 APP.questions = [];//stores data on all of the latest batch of new questions
 function getLastBatchOfQuestions(){
-	return APP.questions;
+    console.log(APP.questions);
+    return APP.questions;
 }
 
 APP.API_VERSION = "2.0";
@@ -71,14 +72,14 @@ APP.MAX_LENGTH_VIEWED_INBOX_ITEMS_LIST = 1000;
 APP.INBOX_FILTER = "!)r0QK8ESzLBA7ymTobxE";
 
 function addToViewedQuestions(historyItems, profile){
-  console.log("Ran history check");
-  for(var i = 0; i < historyItems.length; ++i){
-    if(historyItems[i].url.startsWith(getSite(profile.site).site_url +"/questions")
-        && $.inArray(historyItems[i].url.split("/")[4], APP.viewedQuestions) === -1){
-        console.log("Adding: " + historyItems[i].url.split("/")[4]);
-        APP.viewedQuestions.push("" + historyItems[i].url.split("/")[4]);
+    console.log("Ran history check");
+    for(var i = 0; i < historyItems.length; ++i){
+        if(historyItems[i].url.startsWith(getSite(profile.site).site_url +"/questions")
+                && $.inArray(historyItems[i].url.split("/")[4], APP.viewedQuestions) === -1){
+                    console.log("Adding: " + historyItems[i].url.split("/")[4]);
+                    APP.viewedQuestions.push("" + historyItems[i].url.split("/")[4]);
+                }
     }
-  }
 }
 
 APP.viewedQuestions;//question ids already notified of; maintained between API calls
@@ -86,29 +87,29 @@ APP.viewedInboxItems;//hashes of inbox items we've already seen
 
 // If the user logs in with OAuth authorize all future AJAX requests
 function authorizeAllAjaxCalls(accessToken){
-	console.log("Authorizing all future AJAX calls with token " + accessToken);
-	$.ajaxSetup({data: {'access_token': accessToken}});
+    console.log("Authorizing all future AJAX calls with token " + accessToken);
+    $.ajaxSetup({data: {'access_token': accessToken}});
 }
 
 //Get the newest questions that matcha a given search profile
 function getNewestQuestions(profile){
-	if(!profile || !profile.site || !getSite(profile.site) || !profile.anyTags){
-		console.warn("Invalid profile.")
-		console.log(profile);
-		return;
-	}
-	if(!APP.viewedQuestions){//if this is a new session
-		console.log("New Session: Populating viewed question list");
+    if(!profile || !profile.site || !getSite(profile.site) || !profile.anyTags){
+        console.warn("Invalid profile.")
+            console.log(profile);
+        return;
+    }
+    if(!APP.viewedQuestions){//if this is a new session
+        console.log("New Session: Populating viewed question list");
         APP.viewedQuestions = localStorage.viewedQuestions;//load from storage in string form
         if(!APP.viewedQuestions){//we've never run the extension before
-			console.log("First time running extension");
+            console.log("First time running extension");
             APP.viewedQuestions = [];//make a new place to keep question IDs we've been to
             //load in question we've seen from history in the past couple days
-			var lastFewDays = 259200000;//72 hours in milliseconds
-			console.log("Checking last few days history to see what questions you've viewed");
-			chrome.history.search({"text": getSite(profile.site).site_url, "startTime" : new Date().getTime() - lastFewDays},
- 				function(items){return addToViewedQuestions(items, profile)});
-	        localStorage.viewedQuestions = JSON.stringify(APP.viewedQuestions);//save changes
+            var lastFewDays = 259200000;//72 hours in milliseconds
+            console.log("Checking last few days history to see what questions you've viewed");
+            chrome.history.search({"text": getSite(profile.site).site_url, "startTime" : new Date().getTime() - lastFewDays},
+                    function(items){return addToViewedQuestions(items, profile)});
+            localStorage.viewedQuestions = JSON.stringify(APP.viewedQuestions);//save changes
         }
         else{
             APP.viewedQuestions = JSON.parse(APP.viewedQuestions);//convert to array
@@ -116,109 +117,113 @@ function getNewestQuestions(profile){
     }
 
     var tags = profile.tags;
-	var site = profile.site;
-	var anyTags = profile.anyTags;
-	var ignoredTags = profile.ignoredTags;
-    
+    var site = profile.site;
+    var anyTags = profile.anyTags;
+    var ignoredTags = profile.ignoredTags;
+
     var pageSize = 5;//how many questions to get from server
     var apiQueryPath = "questions";//which api method to use
     if(anyTags && tags.length > 0){ 
         apiQueryPath = "search";//See http://stackapps.com/questions/1024/and-searching-for-tags
     }
     var time = Math.round(new Date().getTime() / 1000)
-    var dayAgo = time - APP.DAY;
-    
-	console.log("Checking history for questions asked on " + site.name + " since last check");
-    chrome.history.search({"text": getSite(site).site_url, "startTime" : new Date().getTime() - APP.ITERATION_INTERVAL * 10},
- function(items){return addToViewedQuestions(items, profile)});//Check history to see what's been viewed since last run
-    
-	if(profile.lastRun){
-		console.log("Checking for questions asked since last run:" + profile.lastRun);
-	}
-	else{
-		console.log("Checking for questions asked in last day:" + dayAgo);
-	}
-	console.log("Checking " + getSite(site).name)
-    //get the newest questions with these tags
-    $.getJSON(APP.API_URL + "/" + APP.API_VERSION +"/" + apiQueryPath ,
-    {"site" : getSite(site).api_site_parameter,
-	"key" : APP.API_KEY,
-    "sort" : "creation",
-    "pagesize" : pageSize,
-    "fromdate" : dayAgo,//profile.lastRun ? profile.lastRun : dayAgo,
-    "tagged" : tags.split(' ').join(';')},
-    function(data){
-        if(data === null){
-            return;//API call failed!
-        }
-        profile.lastRun = time;
-        
-        //for every question found notify me only of all the desired new ones
-        $.each(data.items,function(k,v){//for each of the questions returned
-            
-            var hasIgnoredTags = false;
-            var questionID = v.question_id;
+        var dayAgo = time - APP.DAY;
 
-            $.each(v.tags, function(k1,v1){//check all the tags in the question....
-                var ignoredTagArray = [];
-                ignoredTagArray = ignoredTags !== undefined ?  ignoredTags.split(" ") : [];
-                $.each(ignoredTagArray, function(k2,v2){//..against ignored tags
-                    if(v1 === v2){
-                        hasIgnoredTags = true;//found one!
-						console.log("Question " + questionID + " has ignored tag " + v2);
-                        return;//and that's good enough
+    console.log("Checking history for questions asked on " + site.name + " since last check");
+    chrome.history.search({"text": getSite(site).site_url, "startTime" : new Date().getTime() - APP.ITERATION_INTERVAL * 10},
+            function(items){return addToViewedQuestions(items, profile)});//Check history to see what's been viewed since last run
+
+    if(profile.lastRun){
+        console.log("Checking for questions asked since last run:" + profile.lastRun);
+    }
+    else{
+        console.log("Checking for questions asked in last day:" + dayAgo);
+    }
+    console.log("Checking " + getSite(site).name)
+        //get the newest questions with these tags
+        $.getJSON(APP.API_URL + "/" + APP.API_VERSION +"/" + apiQueryPath ,
+                {"site" : getSite(site).api_site_parameter,
+                    "key" : APP.API_KEY,
+            "sort" : "creation",
+            "pagesize" : pageSize,
+            "fromdate" : dayAgo,//profile.lastRun ? profile.lastRun : dayAgo,
+            "tagged" : tags.split(' ').join(';')},
+            function(data){
+                if(data === null){
+                    return;//API call failed!
+                }
+                profile.lastRun = time;
+
+                //for every question found notify me only of all the desired new ones
+                $.each(data.items,function(k,v){//for each of the questions returned
+
+                    var hasIgnoredTags = false;
+                    var questionID = v.question_id;
+
+                    $.each(v.tags, function(k1,v1){//check all the tags in the question....
+                        var ignoredTagArray = [];
+                        ignoredTagArray = ignoredTags !== undefined ?  ignoredTags.split(" ") : [];
+                        $.each(ignoredTagArray, function(k2,v2){//..against ignored tags
+                            if(v1 === v2){
+                                hasIgnoredTags = true;//found one!
+                                console.log("Question " + questionID + " has ignored tag " + v2);
+                                return;//and that's good enough
+                            }
+                        });
+                    });
+
+                    if(hasIgnoredTags){
+                        console.log("Skipping question " + questionID + " because it has an ignored tag");
+                        return;
+                    }
+
+                    if($.inArray("" + questionID, APP.viewedQuestions) === -1) {//if we haven't seen it yet display it
+                        console.log("New Q! " + questionID);
+                        //we'll pass the information needed to the html notification in the query string
+                        var notificationURL = "notification.html?title=" + encodeURIComponent(v.title) + "&url=" + encodeURIComponent(v.link) + + "&vote_count=" + v.score + "&answer_count=" + v.answer_count + "&view_count=" + v.view_count + "&tags=" + encodeURIComponent(JSON.stringify(v.tags)) + "&logo_url=" + encodeURIComponent(getSite(site).logo_url) + "&autoclose=" + APP.viewModel.autoclose;
+                        /*
+                        var notification = webkitNotifications.createHTMLNotification(notificationURL);
+                        console.log("Notification URL: " + notificationURL);
+                        */
+                        APP.questions.push({"question" : v, "site" : getSite(site)});
+                        if(APP.questions.length > APP.MAX_LENGTH_POPUP_LIST){
+                            APP.questions.shift();
+                        }
+                        /*
+                        notification.show();
+                        */
+
+                        console.log("Adding question " + questionID + " to list of viewed questions");
+                        APP.viewedQuestions.push( "" + questionID);//add to to the list of questions we've already been notified of
+
+                        //Make sure the list doesn't get too long
+                        while(APP.viewedQuestions.length > APP.MAX_LENGTH_VIEWED_QUESTIONS_LIST){
+                            APP.viewedQuestions.shift();
+                        }
+                        localStorage.viewedQuestions = JSON.stringify(APP.viewedQuestions);
+                    }
+                    else{
+                        console.log("Skipping question " + questionID + " because we've seen it already.");
+                        return;
                     }
                 });
-            });
+            });//end of API call for new questions
 
-			if(hasIgnoredTags){
-				console.log("Skipping question " + questionID + " because it has an ignored tag");
-				return;
-			}
-            
-            if($.inArray("" + questionID, APP.viewedQuestions) === -1) {//if we haven't seen it yet display it
-				console.log("New Q! " + questionID);
-                //we'll pass the information needed to the html notification in the query string
-				var notificationURL = "notification.html?title=" + encodeURIComponent(v.title) + "&url=" + encodeURIComponent(v.link) + + "&vote_count=" + v.score + "&answer_count=" + v.answer_count + "&view_count=" + v.view_count + "&tags=" + encodeURIComponent(JSON.stringify(v.tags)) + "&logo_url=" + encodeURIComponent(getSite(site).logo_url) + "&autoclose=" + APP.viewModel.autoclose;
-                var notification = webkitNotifications.createHTMLNotification(notificationURL);
-				console.log("Notification URL: " + notificationURL);
-                APP.questions.push({"question" : v, "site" : getSite(site)});
-				if(APP.questions.length > APP.MAX_LENGTH_POPUP_LIST){
-					APP.questions.shift();
-				}
-                notification.show();
-                
-				console.log("Adding question " + questionID + " to list of viewed questions");
-				APP.viewedQuestions.push( "" + questionID);//add to to the list of questions we've already been notified of
-				
-				//Make sure the list doesn't get too long
-				while(APP.viewedQuestions.length > APP.MAX_LENGTH_VIEWED_QUESTIONS_LIST){
-					APP.viewedQuestions.shift();
-				}
-				localStorage.viewedQuestions = JSON.stringify(APP.viewedQuestions);
-            }
-			else{
-				console.log("Skipping question " + questionID + " because we've seen it already.");
-				return;
-			}
-        });
-    });//end of API call for new questions
-    
 }
 
 function getNewQuestionsForAllProfiles(){
-	$.each(APP.viewModel.profiles, function(key, profile){
-		getNewestQuestions(profile);
-	});
+    $.each(APP.viewModel.profiles, function(key, profile){
+        getNewestQuestions(profile);
+    });
 }
 
 function getUnreadInbox(){
-	if(!APP.viewModel.token){
-		console.log("No token");
-		return;
-	}
-	
-	if(!APP.viewedInboxItems){//if this is a new session
+    if(!APP.viewModel.token){
+        console.log("No token");
+        return;
+    }
+
+    if(!APP.viewedInboxItems){//if this is a new session
         APP.viewedInboxItems = localStorage.viewedInboxItems;//load from storage in string form
         if(!APP.viewedInboxItems){//we've never run the extension before
             APP.viewedInboxItems = [];//make a new place to keep inbox item hashes we've been to
@@ -227,103 +232,107 @@ function getUnreadInbox(){
             APP.viewedInboxItems = JSON.parse(APP.viewedInboxItems);//convert to array
         }
     }
-    
+
     var apiQueryPath = "inbox/unread";
-	console.log("Getting the unread inbox items");
-	
+    console.log("Getting the unread inbox items");
+
     //get the newest questions with these tags, note that tags should be seperated by %20 in the query
     $.getJSON(APP.API_URL + "/" + APP.API_VERSION +"/" + apiQueryPath ,
-    {
-	"key" : APP.API_KEY,
-	"filter" : APP.INBOX_FILTER
-	},
-    function(data){
-        if(data === null){
-            return;//API call failed!
-        }
-        
-        
-        //for every question found notify me only of all the desired new ones
-        $.each(data.items,function(k,v){//for each of the questions returned
-            
-            var itemHash = JSON.stringify(v).hashCode();
-            
-            if($.inArray(itemHash, APP.viewedInboxItems) === -1){//if we haven't seen it yet and it has the right tags and none of the ignored ones
-                //we'll pass the information needed to the html notification in the query string
-				var notificationTemplate = (v.item_type === "careers_message" ? "careerNotification.html" : "inboxNotification.html");
-                var notificationURL = notificationTemplate + "?title=" + encodeURIComponent(v.title) + "&url=" + encodeURIComponent(v.link) + "&logo_url=" + encodeURIComponent(v.site.favicon_url) + "&site_name=" + encodeURIComponent(v.site.name) + "&body=" + encodeURIComponent(v.body) + "&type=" + encodeURIComponent(v.item_type) + "&autoclose=" + APP.viewModel.autoclose;
-                var notification = webkitNotifications.createHTMLNotification(notificationURL);
-				console.log("Notification URL: " + notificationURL);
- 
-                notification.show();
-                
-                APP.viewedInboxItems.push(itemHash);//add to to the list of inbox items we've already been notified of
-				if(APP.viewedInboxItems.length > APP.MAX_LENGTH_VIEWED_INBOX_ITEMS_LIST){
-					APP.viewedInboxItems.shift();
-				}
-            }
-			else{
-				console.log("Already read inbox item: " + itemHash);
-			}
-        });
-    });//end of API call for new inbox items
+            {
+                "key" : APP.API_KEY,
+        "filter" : APP.INBOX_FILTER
+            },
+            function(data){
+                if(data === null){
+                    return;//API call failed!
+                }
+
+
+                //for every question found notify me only of all the desired new ones
+                $.each(data.items,function(k,v){//for each of the questions returned
+
+                    var itemHash = JSON.stringify(v).hashCode();
+
+                    if($.inArray(itemHash, APP.viewedInboxItems) === -1){
+                        //if we haven't seen it yet and it has the right tags and none of the ignored ones
+                        //we'll pass the information needed to the html notification in the query string
+                        var notificationTemplate = (v.item_type === "careers_message" ? "careerNotification.html" : "inboxNotification.html");
+
+                        var notificationURL = notificationTemplate + "?title=" + encodeURIComponent(v.title) + "&url=" + encodeURIComponent(v.link) + "&logo_url=" + encodeURIComponent(v.site.favicon_url) + "&site_name=" + encodeURIComponent(v.site.name) + "&body=" + encodeURIComponent(v.body) + "&type=" + encodeURIComponent(v.item_type) + "&autoclose=" + APP.viewModel.autoclose;
+                        /*
+                        var notification = webkitNotifications.createHTMLNotification(notificationURL);
+                        console.log("Notification URL: " + notificationURL);
+                        notification.show();
+                        */
+
+                        APP.viewedInboxItems.push(itemHash);//add to to the list of inbox items we've already been notified of
+                        if(APP.viewedInboxItems.length > APP.MAX_LENGTH_VIEWED_INBOX_ITEMS_LIST){
+                            APP.viewedInboxItems.shift();
+                        }
+                    }
+                    else{
+                        console.log("Already read inbox item: " + itemHash);
+                    }
+                });
+            });//end of API call for new inbox items
     localStorage.viewedInboxItems = JSON.stringify(APP.viewedInboxItems);//save changes
-    
+
 }
 
 function getLatestReputationScore(){
-	console.log("Getting latest reputation score...");
-	if(!APP.viewModel.token){
-		console.log("No token");
-		return;
-	}
-	var repFilter = "!R04ewk2";
-	if(APP.viewModel && APP.viewModel.badgeSite){
-		$.getJSON(APP.API_URL + "/" + APP.API_VERSION +"/" + "me" ,
-	    {
-		"key" : APP.API_KEY,
-		"filter" : repFilter,
-		"site" : getSite(APP.viewModel.badgeSite).api_site_parameter
-		},
-		function(data){
-			if(data.items && data.items[0].reputation){
-				var score = parseInt(data.items[0].reputation, 10);
-				var rep = "" + score;
-				if(score > 9999){
-					score = score / 1000.0;
-					rep = ("" + score).substring(0, 4) + "k";
-				}
-				chrome.browserAction.setBadgeText({"text": rep});
-			}
-		});
-	} else {
-		console.log("No site selected for reputation count.")
-	}
+    console.log("Getting latest reputation score...");
+    if(!APP.viewModel.token){
+        console.log("No token");
+        return;
+    }
+    var repFilter = "!R04ewk2";
+    if(APP.viewModel && APP.viewModel.badgeSite){
+        $.getJSON(APP.API_URL + "/" + APP.API_VERSION +"/" + "me" ,
+                {
+                    "key" : APP.API_KEY,
+            "filter" : repFilter,
+            "site" : getSite(APP.viewModel.badgeSite).api_site_parameter
+                },
+                function(data){
+                    if(data.items && data.items[0].reputation){
+                        var score = parseInt(data.items[0].reputation, 10);
+                        var rep = "" + score;
+                        if(score > 9999){
+                            score = score / 1000.0;
+                            rep = ("" + score).substring(0, 4) + "k";
+                        }
+                        chrome.browserAction.setBadgeText({"text": rep});
+                    }
+                });
+    } else {
+        console.log("No site selected for reputation count.")
+    }
 }
 
 $.each(APP.viewModel.profiles, function(key, profile){
-	getNewestQuestions(profile);
+    getNewestQuestions(profile);
 });
 getUnreadInbox();
 getLatestReputationScore();
 
 APP.intervals = [];
 function getIntervals(){
-	return APP.intervals;
+    return APP.intervals;
 }
 
+
 function go(){
-	console.log("Starting...");
-	APP.intervals.push(setInterval( function(){getNewQuestionsForAllProfiles()}, APP.ITERATION_INTERVAL));
-	APP.intervals.push(setInterval( function(){getUnreadInbox()}, APP.ITERATION_INTERVAL));
-	setInterval( function(){getLatestReputationScore()}, APP.ITERATION_INTERVAL);//Never stop updating rep badge
+    console.log("Starting...");
+    APP.intervals.push(setInterval( function(){getNewQuestionsForAllProfiles()}, APP.ITERATION_INTERVAL));
+    APP.intervals.push(setInterval( function(){getUnreadInbox()}, APP.ITERATION_INTERVAL));
+    setInterval( function(){getLatestReputationScore()}, APP.ITERATION_INTERVAL);//Never stop updating rep badge
 }
 
 go();
 
 function stop(){
-	console.log("Stopping...")
-    while(APP.intervals.length > 0){
-        clearInterval(APP.intervals.pop());
-    }
+    console.log("Stopping...")
+        while(APP.intervals.length > 0){
+            clearInterval(APP.intervals.pop());
+        }
 }
