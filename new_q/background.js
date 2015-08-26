@@ -32,8 +32,13 @@ function addToViewedQuestions(historyItems, profile){
 
         if(historyItems[i].url.startsWith(getSite(profile.site).site_url +"/questions")
                 && $.inArray(historyItems[i].url.split("/")[4], APP.viewedQuestions) === -1){
-                    console.log("Adding: " + historyItems[i].url.split("/")[4]);
-                    APP.viewedQuestions.push("" + historyItems[i].url.split("/")[4]);
+                    if(typeof(historyItems[i].url.split("/")[4]) == "undefined"){
+                        console.log("Why such URL retrievaled?");
+                        console.log(historyItems[i].url.split("/"));
+                    }else{
+                        console.log("Adding: " + historyItems[i].url.split("/")[4]);
+                        APP.viewedQuestions.push("" + historyItems[i].url.split("/")[4]);
+                    }
                 }
     }
 }
