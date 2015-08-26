@@ -5,7 +5,10 @@
   "description": "Notifies you of new interesting questions on your favorite StackExchange site (e.g. StackOverflow.com).",
 
   "background": {
-    "scripts": [ "js/jquery.min.js","background.js" ]
+    "scripts": [ "js/jquery.min.js","util.js",
+        "app_func.js","question.js",
+        "reputation.js","inbox.js",
+        "background.js" ]
   },
 
   //"background_page": "background.html",
